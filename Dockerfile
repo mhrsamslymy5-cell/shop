@@ -6,6 +6,10 @@ WORKDIR /app
 RUN apk add --no-cache openssl
 COPY package.json ./
 COPY prisma ./prisma
+# No package-lock.json is committed yet (this is a fresh project - see
+# README "Local setup" to generate one). Once you commit a lockfile,
+# switch this to `COPY package.json package-lock.json ./` and `npm ci`
+# for fully reproducible builds.
 RUN npm install --no-audit --no-fund
 
 FROM node:20-alpine AS builder

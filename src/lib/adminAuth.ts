@@ -5,8 +5,13 @@ import { NextRequest } from "next/server";
 const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET as string;
 const ADMIN_COOKIE = "af_admin_session";
 
-if (!ADMIN_JWT_SECRET && process.env.NODE_ENV === "production") {
-  throw new Error("ADMIN_JWT_SECRET is not set");
+// See the identical note in lib/auth.ts: checked lazily, not at module
+// load time, because `next build` evaluates this file before runtime env
+// vars exist on platforms like Railway.
+function assertAdminSecretConfigured() {
+  if (!ADMIN_JWT_SECRET) {
+    throw new Error("ADMIN_JWT_SECRET is not set");
+  }
 }
 
 export interface AdminTokenPayload {
@@ -30,12 +35,14 @@ export function checkAdminCredentials(
 }
 
 export function signAdminToken(payload: AdminTokenPayload): string {
+  assertAdminSecretConfigured();
   return jwt.sign(payload, ADMIN_JWT_SECRET, {
-  expiresIn: "12h",
-} as jwt.SignOptions);
+    expiresIn: "12h",
+  } as jwt.SignOptions);
 }
 
 export function verifyAdminToken(token: string): AdminTokenPayload | null {
+  assertAdminSecretConfigured();
   try {
     return jwt.verify(token, ADMIN_JWT_SECRET) as AdminTokenPayload;
   } catch {
