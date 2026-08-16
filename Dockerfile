@@ -2,15 +2,15 @@
 
 FROM node:20-alpine AS deps
 WORKDIR /app
+# openssl is needed by the Prisma engines at runtime/generate time on Alpine.
+RUN apk add --no-cache openssl
 COPY package.json ./
-# No package-lock.json is committed yet (this is a fresh project - see
-# README "Local setup" to generate one). Once you commit a lockfile,
-# switch this to `COPY package.json package-lock.json ./` and `npm ci`
-# for fully reproducible builds.
+COPY prisma ./prisma
 RUN npm install --no-audit --no-fund
 
 FROM node:20-alpine AS builder
 WORKDIR /app
+RUN apk add --no-cache openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate
@@ -18,6 +18,7 @@ RUN npm run build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
+RUN apk add --no-cache openssl
 ENV NODE_ENV=production
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
