@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminFromRequest } from "@/lib/adminAuth";
 
-// Protects Admin PAGE routes (not the login page itself, and not
-// /api/admin/* which already verify the session in each handler).
+const ADMIN_COOKIE = "af_admin_session";
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -11,8 +10,8 @@ export function middleware(req: NextRequest) {
   }
 
   if (pathname.startsWith("/admin")) {
-    const admin = getAdminFromRequest(req);
-    if (!admin) {
+    const hasSessionCookie = Boolean(req.cookies.get(ADMIN_COOKIE)?.value);
+    if (!hasSessionCookie) {
       const loginUrl = new URL("/admin/login", req.url);
       return NextResponse.redirect(loginUrl);
     }
