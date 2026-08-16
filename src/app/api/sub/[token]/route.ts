@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { displayConfigName } from "@/lib/subscription";
 
+export const dynamic = "force-dynamic";
+
 /**
  * Public subscription endpoint consumed by client apps (v2ray/xray etc.)
  * via the opaque, unguessable `token` - not the internal numeric/DB id, and

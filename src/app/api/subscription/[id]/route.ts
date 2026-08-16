@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { buildSubscriptionView } from "@/lib/subscription";
 
+export const dynamic = "force-dynamic";
+
 // IDOR-safe: buildSubscriptionView enforces subscription.userId === session.userId.
 export async function GET(
   req: NextRequest,

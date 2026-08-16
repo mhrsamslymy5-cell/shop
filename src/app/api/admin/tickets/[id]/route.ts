@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentAdmin } from "@/lib/adminAuth";
 import { ticketMessageSchema } from "@/lib/validators";
 
+export const dynamic = "force-dynamic";
+
 // Admin reply (message + status="ANSWERED"), or close the ticket.
 export async function PUT(
   req: NextRequest,

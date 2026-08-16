@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { buildSubscriptionView } from "@/lib/subscription";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const session = await getCurrentUser();
   if (!session) {

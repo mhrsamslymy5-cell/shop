@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { createOrderSchema } from "@/lib/validators";
 
+export const dynamic = "force-dynamic";
+
 // GET: current user's own orders only (IDOR-safe: scoped by session userId).
 export async function GET() {
   const session = await getCurrentUser();

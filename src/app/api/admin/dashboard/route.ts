@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAdmin } from "@/lib/adminAuth";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const admin = await getCurrentAdmin();
   if (!admin) {

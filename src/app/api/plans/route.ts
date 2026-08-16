@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 // Public: list active plans, sourced from DB (not hardcoded).
 export async function GET() {
   const plans = await prisma.plan.findMany({

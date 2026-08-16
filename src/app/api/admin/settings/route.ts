@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentAdmin } from "@/lib/adminAuth";
 import { getAllSettings, setSetting, SETTINGS_KEYS } from "@/lib/settings";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const admin = await getCurrentAdmin();
   if (!admin) {

@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentAdmin } from "@/lib/adminAuth";
 import { configUpsertSchema } from "@/lib/validators";
 
+export const dynamic = "force-dynamic";
+
 export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }

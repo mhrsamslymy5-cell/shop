@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { getPaymentProvider } from "@/lib/payment/cardToCard";
 
+export const dynamic = "force-dynamic";
+
 // Initiates payment for one of the user's own PENDING orders.
 export async function POST(
   req: NextRequest,

@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentAdmin } from "@/lib/adminAuth";
 import { deliverOrder, NoAvailableConfigError } from "@/lib/orderDelivery";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }

@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { validateCouponSchema } from "@/lib/validators";
 
+export const dynamic = "force-dynamic";
+
 // Coupon validity is always re-checked server-side at order-creation time too
 // (this endpoint is just for checkout UX feedback).
 export async function POST(req: NextRequest) {

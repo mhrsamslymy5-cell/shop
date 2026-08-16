@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { ticketMessageSchema } from "@/lib/validators";
 
+export const dynamic = "force-dynamic";
+
 // User replying to their own ticket (IDOR-guarded by ticket.userId check).
 export async function POST(
   req: NextRequest,
