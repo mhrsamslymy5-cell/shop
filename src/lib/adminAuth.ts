@@ -30,7 +30,9 @@ export function checkAdminCredentials(
 }
 
 export function signAdminToken(payload: AdminTokenPayload): string {
-  return jwt.sign(payload, ADMIN_JWT_SECRET, { expiresIn: "12h" });
+  return jwt.sign(payload, ADMIN_JWT_SECRET, {
+  expiresIn: "12h",
+} as jwt.SignOptions);
 }
 
 export function verifyAdminToken(token: string): AdminTokenPayload | null {
