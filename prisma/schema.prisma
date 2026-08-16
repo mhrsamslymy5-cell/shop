@@ -1,0 +1,222 @@
+// AurevonFilter - Prisma schema
+// Provider: PostgreSQL (Railway-ready). For local dev without Postgres,
+// see README for a docker-compose alternative.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============ ENUMS ============
+
+enum OrderStatus {
+  PENDING
+  PAID
+  DELIVERED
+  CANCELLED
+}
+
+enum ConfigStatus {
+  AVAILABLE
+  SOLD
+  DISABLED
+}
+
+enum CouponType {
+  PERCENT
+  FIXED
+}
+
+enum TicketStatus {
+  OPEN
+  ANSWERED
+  CLOSED
+}
+
+enum TicketSender {
+  USER
+  ADMIN
+}
+
+enum PaymentProviderType {
+  CARD_TO_CARD
+  // Future real gateways can be added here (ZARINPAL, STRIPE, ...)
+}
+
+enum PaymentStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+// ============ MODELS ============
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String?
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  orders        Order[]
+  subscriptions Subscription[]
+  tickets       Ticket[]
+}
+
+// Admin credentials are sourced from ADMIN_USERNAME / ADMIN_PASSWORD env vars
+// (see lib/adminAuth.ts). This table exists for audit/session bookkeeping and
+// to support multiple admins later without a schema change.
+model Admin {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  createdAt DateTime @default(now())
+}
+
+model Plan {
+  id           String   @id @default(cuid())
+  title        String
+  description  String?
+  price        Int // stored in smallest currency unit (e.g. Toman)
+  volumeGB     Int
+  durationDays Int
+  isActive     Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  orders Order[]
+}
+
+model Config {
+  id         String       @id @default(cuid())
+  protocol   String
+  name       String
+  uri        String
+  metadata   Json?
+  status     ConfigStatus @default(AVAILABLE)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  order          Order?        @relation(fields: [orderId], references: [id])
+  orderId        String?       @unique
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+  subscriptionId String?
+
+  @@index([status])
+  @@index([protocol])
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  userId       String
+  planId       String
+  price        Int // final price actually charged (after coupon), server-computed
+  volumeGB     Int
+  durationDays Int
+  status       OrderStatus @default(PENDING)
+
+  couponId       String?
+  discountAmount Int?
+
+  createdAt   DateTime  @default(now())
+  paidAt      DateTime?
+  deliveredAt DateTime?
+
+  user   User @relation(fields: [userId], references: [id])
+  plan   Plan @relation(fields: [planId], references: [id])
+  coupon Coupon? @relation(fields: [couponId], references: [id])
+
+  config       Config?
+  payment      Payment?
+  subscription Subscription?
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Subscription {
+  id             String   @id @default(cuid())
+  token          String   @unique @default(cuid()) // used in public subscription URL
+  userId         String
+  orderId        String   @unique
+  totalVolumeGB  Int
+  usedVolumeGB   Int      @default(0)
+  expiresAt      DateTime
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id])
+  order   Order   @relation(fields: [orderId], references: [id])
+  configs Config[]
+
+  @@index([userId])
+  @@index([token])
+}
+
+model Coupon {
+  id          String     @id @default(cuid())
+  code        String     @unique
+  type        CouponType
+  value       Int // percent (0-100) or fixed amount depending on type
+  startAt     DateTime?
+  endAt       DateTime?
+  usageLimit  Int?
+  usedCount   Int        @default(0)
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+
+  orders Order[]
+}
+
+model Ticket {
+  id        String       @id @default(cuid())
+  userId    String
+  subject   String
+  status    TicketStatus @default(OPEN)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  user     User            @relation(fields: [userId], references: [id])
+  messages TicketMessage[]
+
+  @@index([userId])
+}
+
+model TicketMessage {
+  id         String       @id @default(cuid())
+  ticketId   String
+  senderType TicketSender
+  message    String
+  createdAt  DateTime     @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id])
+
+  @@index([ticketId])
+}
+
+model Payment {
+  id            String              @id @default(cuid())
+  orderId       String              @unique
+  provider      PaymentProviderType
+  status        PaymentStatus       @default(PENDING)
+  amount        Int
+  referenceCode String?
+  proofNote     String?
+  createdAt     DateTime            @default(now())
+  verifiedAt    DateTime?
+
+  order Order @relation(fields: [orderId], references: [id])
+}
+
+// Key/value store for admin-configurable settings, e.g. card-to-card details.
+model Setting {
+  key   String @id
+  value String
+}
